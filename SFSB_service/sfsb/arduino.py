@@ -13,7 +13,6 @@ class Arduino:
     def send_bytes(self, msg: bytes):
         while not self.arduino.writable():
             pass
-        print("s")
         self.arduino.write(msg)
 
     def recv(self):
