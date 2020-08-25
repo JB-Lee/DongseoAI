@@ -49,5 +49,3 @@ scheduler = BackgroundScheduler()
 scheduler.start()
 scheduler.add_job(weather_job, "interval", minutes=5)
 scheduler.add_job(feedback_job, "interval", seconds=3)
-
-api.run()
