@@ -1,4 +1,5 @@
 import asyncio
+import logging
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from playsound import playsound
@@ -9,6 +10,8 @@ import listeners
 import weather
 from global_variable import Config, Metrics
 
+logger = logging.getLogger(__name__)
+
 
 def weather_job():
     Metrics.current_weather = weather.get_weather("Busan,KR")
@@ -16,12 +19,12 @@ def weather_job():
 
 def feedback_job():
     if pow_listener.metric:
-        print("집중")
+        logger.info("주의력 결핍")
         playsound(Config.config.get("Sounds.Ping"))
         controller.led_on()
 
     if met_listener.metric:
-        print("흥분")
+        logger.info("흥분")
         playsound(Config.config.get("Sounds.Alert"))
         controller.led_on()
 
@@ -31,6 +34,19 @@ async def main():
     await api.subscribe(token, session, ["pow", "met"])
     await asyncio.sleep(Config.config.get("App.Run_Time"))
     await api.unsubscribe(token, session, ["pow", "met"])
+    scheduler.shutdown()
+
+
+def start_up():
+    import time
+    if met_listener.metric:
+        print("시동 실패")
+        return
+    controller.motor_set_speed(200)
+    time.sleep(0.3)
+    controller.motor_set_speed(230)
+    time.sleep(0.3)
+    controller.motor_set_speed(255)
 
 
 controller = arduino.SFSBClient(Config.config.get("Arduino.Port"))

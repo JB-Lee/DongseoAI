@@ -8,6 +8,7 @@ from global_variable import Config
 class PowerListener(cortex.Listener):
     cols: list
     state = list()
+    __current_state = np.zeros((5, 5))
     __state_size = Config.config.get("Metric.Focus.State_Size")
     model = models.load_model(Config.config.get("Metric.Focus.Model"))
 
@@ -24,6 +25,7 @@ class PowerListener(cortex.Listener):
     def handle_pow(self, data):
         if len(self.state) > self.__state_size:
             self.state.pop(0)
+        self.__current_state = np.array(data["pow"]).reshape(5, 5)
         self.state.append(self.model.predict([data["pow"]])[0][0])
 
     @property
@@ -31,6 +33,10 @@ class PowerListener(cortex.Listener):
         if len(self.state) <= 0:
             return False
         return np.min(self.state) < Config.config.get("Metric.Focus.Threshold")
+
+    @property
+    def data(self):
+        return self.__current_state
 
 
 class MetricListener(cortex.Listener):
